@@ -1,11 +1,15 @@
 import logging
+import os
 import requests
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CallbackQueryHandler, filters
+from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
 from thefuzz import process, fuzz
 
 # --- CONFIGURATION ---
-BOT_TOKEN = "8431621681:AAEfrtw9mvHIazZaZUZtjWEGRoavXfmCisk"
+# WE DO NOT PASTE THE TOKEN HERE ANYMORE
+# The bot will read it from Render's settings safely.
+BOT_TOKEN = os.getenv("BOT_TOKEN") 
+
 DATA_URL = "https://raw.githubusercontent.com/Meher-Hazan/Darrusunnat-PDF-Library/main/books_data.json"
 BOOK_NAME_KEY = "title"
 BOOK_LINK_KEY = "link"
@@ -35,7 +39,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user_text = update.message.text.lower().strip()
     
-    # IGNORE very short messages (e.g. "hi", "salam", "ok", "boi")
+    # 1. SMART FILTER: Ignore short msg & common words
     if len(user_text) < 4:
         return
 
@@ -46,22 +50,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not titles:
         return
 
-    # --- INTELLIGENT SEARCH ---
-    # We use 'token_sort_ratio' instead of 'token_set_ratio'.
-    # Why? 'token_set' matches partial words (like "er") giving 100% score.
-    # 'token_sort' forces the bot to match the MAIN words of the book.
+    # 2. SMART SEARCH: Use token_sort_ratio 
+    # This prevents matching "er" (of) to every book title.
+    # It focuses on the unique words in the book title.
     matches = process.extract(user_text, titles, scorer=fuzz.token_sort_ratio, limit=5)
 
-    # Filter: Only keep matches with score > 65
+    # 3. STRICT FILTER: Only accept matches > 65% similarity
     valid_matches = [m for m in matches if m[1] > 65]
 
     if not valid_matches:
-        return # Silence if no good match found
+        return # Stay silent if it's just random chat
 
     # --- INTERACTIVE REPLY ---
     
-    # 1. PERFECT MATCH (Confidence > 88)
-    # If we are super sure, just give the button immediately.
+    # A. Perfect Match (> 88%) -> Show Download Button
     best_match = valid_matches[0]
     if best_match[1] > 88:
         book = book_map[best_match[0]]
@@ -77,13 +79,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # 2. MAYBE MATCH (Confidence 65-88)
-    # Give the user a choice.
+    # B. Close Match -> Show Options
     keyboard = []
-    for name, score in valid_matches[:3]: # Show top 3 options
+    for name, score in valid_matches[:3]: # Top 3
         book = book_map[name]
         link = book.get(BOOK_LINK_KEY, "#")
-        # Button label: Book Title
         keyboard.append([InlineKeyboardButton(f"📖 {name}", url=link)])
 
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -94,12 +94,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(BOT_TOKEN).build()
-    
-    # Handle text messages
-    echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message)
-    application.add_handler(echo_handler)
-    
-    print("Bot is restarting and listening...")
-    application.run_polling()
-
+    if not BOT_TOKEN:
+        print("Error: BOT_TOKEN is missing! Add it to Render Environment Variables.")
+    else:
+        application = ApplicationBuilder().token(BOT_TOKEN).build()
+        echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message)
+        application.add_handler(echo_handler)
+        print("Bot is secure and running...")
+        application.run_polling()
