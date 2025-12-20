@@ -7,7 +7,7 @@ RENDER_URL = "https://library-bot-amuk.onrender.com" # REPLACE WITH YOUR URL
 
 # --- ADMIN SETTINGS ---
 # 1. Get your ID from @userinfobot
-ADMIN_ID = 1280989150  
+ADMIN_ID = 5529462976  
 # 2. Get your Group ID (Type /id in your group) - Used for Daily Book
 GROUP_ID = -1001585388329 
 
