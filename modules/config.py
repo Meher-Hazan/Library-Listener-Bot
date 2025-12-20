@@ -1,15 +1,21 @@
 import os
 
-# 1. SECURITY
-# Load Token from Render Environment (Secure)
+# --- SECURITY ---
 BOT_TOKEN = os.getenv("BOT_TOKEN") 
-# Your Book Database URL
 DATA_URL = "https://raw.githubusercontent.com/Meher-Hazan/Darrusunnat-PDF-Library/main/books_data.json"
-# Your Render URL (For self-pinging)
-RENDER_URL = "https://library-bot-amuk.onrender.com"
+RENDER_URL = "https://library-bot-amuk.onrender.com" # REPLACE WITH YOUR URL
 
-# 2. SYNONYMS (The "Translator")
-# English -> Bangla concepts
+# --- ADMIN SETTINGS ---
+# 1. Get your ID from @userinfobot
+ADMIN_ID = 1280989150  
+# 2. Get your Group ID (Type /id in your group) - Used for Daily Book
+GROUP_ID = -1001585388329 
+
+# --- FILES ---
+STATS_FILE = "stats.json"
+USERS_FILE = "user_database.json"
+
+# --- LOGIC SETTINGS ---
 SYNONYMS = {
     "biography": "jiboni", "history": "itihas", "prayer": "namaz",
     "fasting": "roza", "prophet": "nabi", "messenger": "rasul",
@@ -18,15 +24,12 @@ SYNONYMS = {
     "vol": "khondo", "part": "part"
 }
 
-# 3. BAD WORDS (For Admin Police)
 BAD_WORDS = [
     "scam", "bitcoin", "investment", "crypto", "sex", "porn", "xxx", 
     "fucker", "bitch", "whore", "asshole", "casino", "betting",
-    # Bangla
     "কুত্তা", "হারামি", "সোনা", "বাল", "চুদ", "খানকি", "মাগি"
 ]
 
-# 4. STOP WORDS (Junk words to remove before searching)
 STOP_WORDS = {
     "pdf", "book", "link", "download", "dao", "chai", "plz", "admin", "er", "ar", "boi", 
     "the", "please", "give", "me", "koto", "dam", "ace", "ase", "ki",
